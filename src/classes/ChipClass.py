@@ -1,13 +1,10 @@
-from src.classes.STATIC import ALLOWED_CHIPS_VALUES
+from src.STATIC import ALLOWED_CHIPS_VALUES
 
 
 class Chip:
 
     def __init__(self, value) -> None:
-        if value in ALLOWED_CHIPS_VALUES:
-            self.value = value
-        else:
-            raise ValueError("This value is not allowed")
+        self.value = value
 
     def __add__(self, other):
         if isinstance(other, Chip):
