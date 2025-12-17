@@ -155,13 +155,35 @@ def main() -> None:
 
         print("\nРЕГИСТРАЦИЯ ИГРОКОВ")
         print("-" * 60)
-        players_count = int(input("Введите количество игроков: "))
+        
+        while True:
+            try:
+                players_count = int(input("Введите количество игроков: "))
+                break
+            except ValueError:
+                print("Неверный символ, попробуйте еще\n")
+                continue
+
 
         for i in range(players_count):
             print(f"\nИгрок #{i+1}:")
-            name = input("  Введите имя: ")
-            balance = int(input(
+            
+            while True:
+                name = input("  Введите имя: ")
+                if name != "":
+                    break
+                else:
+                    print("Имя не может быть пустым")
+                    continue
+            
+            while True:
+                try:
+                    balance = int(input(
                 "  Введите баланс (доступные фишки: 5, 10, 25, 100, 200, 500): "))
+                    break
+                except ValueError:
+                    print("Баланс должен быть числом")
+                    continue
 
             casic.player_registry(name, balance)
             print(f"  Игрок {name} зарегистрирован!")
@@ -169,12 +191,34 @@ def main() -> None:
         print("\n" + "="*60)
         print("РЕГИСТРАЦИЯ ГУСЕЙ")
         print("-" * 60)
-        gooses_count = int(input("Введите количество гусей: "))
+        
+        while True:
+            try:        
+                gooses_count = int(input("Введите количество гусей: "))
+                break
+            except ValueError:
+                print("Неверный символ, попробуйте еще\n")
+                continue
 
         for i in range(gooses_count):
             print(f"\nГусь #{i+1}:")
-            name = input("  Введите имя: ")
-            goose_type = input("  Введите тип (WarGoose/HonkGoose/Goose): ")
+            
+            while True:  
+                name = input("  Введите имя: ")
+                if name != "":
+                    break
+                else:
+                    print("Имя не может быть пустым")
+                    continue
+            
+            while True:
+                goose_type = input("  Введите тип (WarGoose/HonkGoose/Goose): ")
+                if goose_type == "WarGoose" or goose_type == "HonkGoose" or goose_type == "Goose":
+                    break
+                else:
+                    print("Неверный тип гуся, попробуйте еще\n")
+                    continue
+    
 
             casic.goose_registry(goose_type, name)
             print(f"  Гусь {name} ({goose_type}) зарегистрирован!")
