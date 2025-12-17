@@ -6,6 +6,14 @@ import json
 
 
 def save_game(seed_name: str, players: list[Player], gooses: list[Goose | WarGoose | HonkGoose], seed: int):
+    """Сохраняет текущее состояние игры в JSON файл.
+    
+    Args:
+        seed_name: Название сохранения
+        players: Список игроков для сохранения
+        gooses: Список гусей для сохранения
+        seed: Сид генератора случайных чисел
+    """
     try:
         with open("src/saved_seeds.json", "r") as data:
             saves = json.load(data)
@@ -42,21 +50,33 @@ def save_game(seed_name: str, players: list[Player], gooses: list[Goose | WarGoo
 
 
 def register_players_from_save(filepath: str, save_name: str, casic: Casino):
-
+    """Регистрирует игроков из сохраненной игры в казино.
+    
+    Args:
+        filepath: Путь к файлу с сохранениями
+        save_name: Название сохранения для загрузки
+        casic: Экземпляр казино для регистрации игроков
+    """
     with open(filepath, "r") as data:
         save = json.load(data)
 
     for player_data in save["seeds"][save_name]["players"].values():
 
         name = player_data["name"]
-        balance = int(player_data["balance"])  # Преобразуем в число
+        balance = int(player_data["balance"])
 
         casic.player_registry(name, balance)
     return
 
 
 def register_gooses_from_save(filepath: str, save_name: str, casic: Casino):
-
+    """Регистрирует гусей из сохраненной игры в казино.
+    
+    Args:
+        filepath: Путь к файлу с сохранениями
+        save_name: Название сохранения для загрузки
+        casic: Экземпляр казино для регистрации гусей
+    """
     with open(filepath, "r") as data:
         save = json.load(data)
 
@@ -68,28 +88,3 @@ def register_gooses_from_save(filepath: str, save_name: str, casic: Casino):
         casic.goose_registry(goose_type, name)
     return
 
-
-with open("src/saved_seeds.json", "r") as data:
-    saves = json.load(data)
-
-print(saves["seeds"]["save1"]["players"])
-
-for player_data in saves["seeds"]["save1"]["players"].values():
-    balance = player_data["balance"]
-    print(balance)
-
-# casic = Casino()
-
-# casic.player_registry("Alice", 100)
-# casic.player_registry("Jhon", 200)
-
-# casic.goose_registry("WarGoose", "MJ")
-
-# save_game("lol", list(casic.player_collection.players.values()), list(
-#     casic.goose_collection.gooses.values()), list(casic.goose_collection.flockes.values()), 2341)
-
-
-# with open("saved_seeds.json", "r") as data:
-#     saves = json.load(data)
-# for i, save in enumerate(saves["seeds"]):
-#     print(f"{i}) {save}")

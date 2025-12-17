@@ -4,13 +4,24 @@ from src.classes.PlayerClass import Player
 from src.classes.GooseClasess import Goose, WarGoose, HonkGoose
 from src.classes.ChipClass import Chip
 from src.STATIC import ALLOWED_ACTIONS, ALLOWED_CHIPS_VALUES
+from src.logger import logger
 
 import random
 
-
 class Casino:
+    """Класс, представляющий казино с игроками и гусями.
+    
+    Attributes:
+        goose_collection: Коллекция гусей и их стай
+        player_collection: Коллекция игроков
+    """
 
     def __init__(self, seed=None) -> None:
+        """Инициализирует казино с опциональным сидом для генератора случайных чисел.
+        
+        Args:
+            seed: Сид для генератора случайных чисел (опционально)
+        """
         if seed is not None:
             random.seed(seed)
         self.goose_collection = GooseCollection()
@@ -18,9 +29,20 @@ class Casino:
 
     @property
     def summary_players_balance(self):
+        """Возвращает суммарный баланс всех игроков.
+        
+        Returns:
+            int: Общий баланс всех игроков
+        """
         return self.player_collection.summary_balance
 
     def player_registry(self, name: str, balance: int = 0):
+        """Регистрирует нового игрока в казино.
+        
+        Args:
+            name: Имя игрока
+            balance: Начальный баланс игрока (по умолчанию 0)
+        """
         self.player_collection.add_player(Player(name))
         if balance != 0:
             chips = self.lay_out_for_chips(balance)
@@ -30,6 +52,16 @@ class Casino:
             return
 
     def goose_registry(self, type: str, name: str, balance: int = 0):
+        """Регистрирует нового гуся в казино.
+        
+        Args:
+            type: Тип гуся (Goose, WarGoose или HonkGoose)
+            name: Имя гуся
+            balance: Начальный баланс гуся (по умолчанию 0)
+            
+        Raises:
+            TypeError: Если указан некорректный тип гуся
+        """
         if type == "Goose":
             self.goose_collection.add_goose(Goose(name, balance))
         elif type == "WarGoose":
@@ -40,6 +72,11 @@ class Casino:
             raise TypeError("Incorrect type of goose")
 
     def calculate_k(self):
+        """Вычисляет коэффициент выигрыша на основе случайного значения.
+        
+        Returns:
+            float: Коэффициент от 0.7 до 10
+        """
         rand = random.random()
 
         if rand < 0.01:
@@ -73,7 +110,7 @@ class Casino:
         return chips
 
     def downgrade_debuffs(self):
-
+        """Уменьшает уровень паники у всех игроков на 2%."""
         for player in list(self.player_collection.players.values()):
             if player.panic_ind >= 2:
                 player.panic_ind -= 2
@@ -81,10 +118,19 @@ class Casino:
                 continue
 
     def player_lose(self, name: str):
+        """Удаляет игрока из казино после проигрыша.
+        
+        Args:
+            name: Имя проигравшего игрока
+        """
         self.player_collection.rm_player(name)
 
     def sim_step(self):
-
+        """Выполняет один шаг симуляции игры в казино.
+        
+        Returns:
+            int or None: 0 если выиграли гуси, 1 если выиграли игроки, None если игра продолжается
+        """
         if not self.player_collection.players or self.summary_players_balance == 0:
             return 0
 
@@ -114,17 +160,22 @@ class Casino:
                     player.chips_col.chips = []
                     self.player_lose(player.name)
                     print(f"  {player.name} в панике потерял все фишки и выбыл!")
+                    logger.info(f"{player.name} в панике потерял все фишки и выбыл!")
                     continue
 
                 try:
+                    old_balance = player.balance
                     bet_value = player.make_bet()
+                    old_bet_value = bet_value
                 except ValueError:
                     print(f"  {player.name} не может сделать ставку и выбыл!")
+                    logger.error(f"{player.name} не может сделать ставку и выбыл!")
                     self.player_lose(player.name)
                     continue
 
                 bet_value *= k
-                print(f"  {player.name} сделал ставку. Коэффициент: {k:.2f}x")
+                print(f"  {player.name} сделал ставку: {old_bet_value}. Коэффициент: {k:.2f}x")
+                logger.info(f"{player.name} сделал ставку: {old_bet_value}. Коэффициент: {k:.2f}x")
 
                 # try:
 
@@ -134,9 +185,11 @@ class Casino:
                     if k > 1:
                         print(
                             f"  {player.name} выиграл! Новый баланс: {player.balance}")
+                        logger.info(f"{player.name} выиграл! Старый баланс: {old_balance} Новый баланс: {player.balance}")
                     else:
                         print(
                             f"  {player.name} проиграл. Новый баланс: {player.balance}")
+                        logger.info(f"{player.name} проиграл. Старый баланс: {old_balance} Новый баланс: {player.balance}")
 
                     lost_amount = bet_value / k
                     all_gooses = list(self.goose_collection.gooses.values(
@@ -148,6 +201,7 @@ class Casino:
                             goose.balance += share
                 else:
                     print(f"  {player.name} проиграл и выбыл из игры!")
+                    logger.info(f"{player.name} проиграл и выбыл из игры!")
                     self.player_lose(player.name)
 
                     lost_amount = bet_value / k
@@ -191,13 +245,16 @@ class Casino:
                 if player.chips_col.summary_value >= 5:
                     print(
                         f"  Удар успешен! Игрок потерял {attacker.damage}, его баланс: {player.chips_col.summary_value}")
+                    logger.info(f"Удар успешен! Игрок потерял {attacker.damage}, его баланс: {player.chips_col.summary_value}")
                 else:
                     print(f"  {player.name} выбыл из игры!")
+                    logger.info(f"{player.name} выбыл из игры!")
                     self.player_lose(player.name)
                     return
 
             else:
                 print(f"  {player.name} парировал атаку гуся!")
+                logger.info(f"{player.name} парировал атаку гуся!")
 
         if action == "honkgoose_honk":
 
@@ -217,6 +274,7 @@ class Casino:
             print(f"  {type(honker).__name__} кричит на {player.name}!")
             print(
                 f"  Паника увеличилась на {honker.honk_volume}% (всего: {player.panic_ind}%)")
+            logger.info(f"{type(honker).__name__} кричит на {player.name}!\nПаника увеличилась на {honker.honk_volume}% (всего: {player.panic_ind}%)")
 
         if action == "goose_join":
 
@@ -233,9 +291,9 @@ class Casino:
                 print("  Недостаточно гусей для объединения (нужно минимум 2)")
 
     def run_simulation(self):
-
+        """Запускает полную симуляцию игры до победы одной из сторон."""
         print("="*20, "ЗАПУСК СИМУЛЯЦИИ", "="*20)
-
+        logger.info("="*20 + " ЗАПУСК СИМУЛЯЦИИ " + "="*20)
         while True:
 
             res = self.sim_step()
@@ -249,32 +307,9 @@ class Casino:
 
         if res == 1:
             print("ИГРОКИ ВЫИГРАЛИ")
+            logger.info("="*20 + " ИГРОКИ ВЫИГРАЛИ " + "="*20)
         elif res == 0:
             print("ВЫИГРАЛИ ГУСИ")
+            logger.info("="*20 + " ГУСИ ВЫИГРАЛИ " + "="*20)
 
 
-# cas = Casino()
-
-# cas.player_registry("Jhon", 250)
-# print(cas.player_collection["Jhon"].chips_col.chips)
-# cas.player_collection["Jhon"].chips_col.add_chip(Chip(500))
-# cas.player_registry("Alice")
-# cas.player_collection["Alice"].chips_col.add_chip(Chip(200))
-# cas.goose_registry("WarGoose", "MJ")
-# cas.goose_registry("WarGoose", "LBJ")
-
-
-# print(
-#     f"Игрок Jhon, баланс:{cas.player_collection["Jhon"].balance} Фишки: {cas.player_collection["Jhon"].chips_col.chips}")
-# print(
-#     f"Игрок Alice, баланс:{cas.player_collection["Alice"].balance} Фишки: {cas.player_collection["Alice"].chips_col.chips}")
-# print(f"Стаи: {cas.goose_collection.flockes}, баланс: {cas.goose_collection.summary_goose_balance}")
-
-# cas.sim_step()
-# print(
-#     f"Игрок Jhon, баланс:{cas.player_collection["Jhon"].balance}\nФишки: {cas.player_collection["Jhon"].chips_col.chips}\n")
-# print(
-#     f"Игрок Alice, баланс:{cas.player_collection["Alice"].balance}\nФишки: {cas.player_collection["Alice"].chips_col.chips}")
-
-# print("Баланс казино: ", cas.summary_players_balance)
-# print("Баланс гусей:", cas.goose_collection.summary_goose_balance)

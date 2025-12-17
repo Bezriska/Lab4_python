@@ -62,12 +62,14 @@ def print_statistics(casic):
 
 def main() -> None:
     """
-    Обязательнная составляющая программ, которые сдаются. Является точкой входа в приложение
-    :return: Данная функция ничего не возвращает
+    Точка входа
     """
 
     print_header()
     print("ХОТИТЕ ВЫБРАТЬ ОДНУ ИЗ СОХРАНЕННЫХ СИМУЛЯЦИЙ?")
+
+    with open("logs.log", "w") as log:
+        pass
 
     ans = input("y/n: ")
     if ans == "y":
@@ -77,7 +79,17 @@ def main() -> None:
         for i, save in enumerate(saves["seeds"]):
             print(f"{i}) {save}")
 
-        num = input("\n    ВЫБЕРИТЕ НОМЕР СОХРАНЕНИЯ: ")
+        while True:
+            try:
+                num = int(input("\n    ВЫБЕРИТЕ НОМЕР СОХРАНЕНИЯ: "))
+                if num < len(saves["seeds"]):
+                    break
+                else:
+                    print("Такого номера не существует")
+                    continue
+            except ValueError:
+                print("Номер должен быть числом")
+                continue
 
         for i, save in enumerate(saves["seeds"]):
             if i == int(num):

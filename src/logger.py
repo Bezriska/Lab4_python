@@ -2,6 +2,11 @@ import logging
 
 
 def setup_info_logger():
+    """Настраивает и возвращает логгер для записи информационных сообщений в файл.
+    
+    Returns:
+        logging.Logger: Настроенный логгер с уровнем INFO
+    """
     logger = logging.getLogger("INFO_logger")
     logger.setLevel(logging.INFO)
 
